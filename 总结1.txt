@@ -1,0 +1,558 @@
+﻿注：
+一：
+1、设置伪静态
+32位系统 写成 C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\aspnet_isapi.dll
+64位操作系统 C:\Windows\Microsoft.NET\Framework64\v2.0.50727\aspnet_isapi.dll
+请求限制：
+GET,HEAD,POST,DEBUG
+
+  
+  2>底部加备案号一般格式：
+  备案号：<a href="http://www.miibeian.gov.cn/" target="_blank">粤ICP备14081389号-3</a>
+
+  3>件ftp一般格式：
+  ftp:地址：119.10.31.77 账号：syx 密码：#shenduwang!2015
+
+
+  4>网站设置CNZZ登录地址及账号和密码:
+  CNZZ统计平台登入地址：http://www.cnzz.com/
+  登入名：2246495534@qq.com
+  登入密码：123456789sdw
+
+二：程序做网站基本流程
+  1>对照设计稿、静态页面是检查是否遗漏
+  2>每给编辑同事网站地址时向他索取默认图片的关键词，然后替换ueditor.all.js里的“测试”
+  3>首、内页调整前先问设计师索取内页模板、色块、色值
+  4>底部加备案号、技术支持、cnzz
+
+  2、上测试站点流程
+1》测死链,新、老工具都用一下，用谷歌浏览器点开每个页面看下Console看是否有死链
+2》去外链地址（如果编辑同事在编辑器复制图片把前面ip地址去掉了就可以节省这一步）
+update tbproduct set content=replace(cast(content as varchar(max)),'http://119.10.53.187:8075','')
+update tbproduct set BrandKeyName=replace(cast(BrandKeyName as varchar(max)),'http://119.10.53.187:8075','')
+update tbHelp set PhotoName=replace(cast(PhotoName as varchar(max)),'http://119.10.53.187:8075','')
+update tbHelp set content=replace(cast(content as varchar(max)),'http://119.10.53.187:8075','')
+update tbNews set PhotoName=replace(cast(PhotoName as varchar(max)),'http://119.10.53.187:8075','')
+update tbNews set content=replace(cast(content as varchar(max)),'http://119.10.53.187:8075','')
+3》后台没有的功能禁用
+4》前台页面没用到的功能删除或不包括在项目中
+5》发布，如果是万网服务器，用万网的webconfig，如果是新网的服务器，用系统默认的webconfig，如果是网络时代的服务器，webconfig不能有默认的首页
+6》把ueditor1_3_5-utf8-net/net下所有文件替换发布后的ueditor1_3_5-utf8-net/net文件
+7》除了万网服务器，其它服务器需要设置web权限为完全控制
+8》sql生成脚本，除了万网服务器生成2008，其它生成2000，切记生成时选择架构和数据为true
+10》服务器设置80端口、21端口、1433端口或其他端口
+11》数据库设置可以远程访问
+12》iis设置404错误页面
+13》建立ftp
+14》服务开启数据库服务
+15》设置iis压缩gzip
+16》如果pc和手机同时做是要客服部解析二级域名（如：石英雄项目：http://syx.shendu88.com/，前面syx是每个项目的前字母）
+17》存储过程替换
+18》后台site_config页面联系方式改为产品优势
+20》产品详细订单产品名称字段加长tbOrderDetail（如：朗普仕产品名称很长，产品详细留言时导致不能留言）
+21》产品详细留言替换（用朗普仕的）
+22》前台自定义页面，后台列表查看链接修改
+13》技术支持链接地址：http://www.shenduwang.cn/
+14》问清楚客服部空间是客户买的还是我们帮客户买的，如果是客户买的就上传到我们的测试服务器上，如果不是就上传到买的空间上
+
+3、上线流程
+
+1》80端口设置及域名绑定、如果手机做好记得手机域名也绑定
+2》检查是否有外链地址、记得重新生成一下静态页面
+3》重新检查一下死链
+4》重新检查是否压缩gzip
+5》设置301跳转
+设置301代码：
+在ASP.NET程序的Web.config中的system.webServer节点设置和添加<rewrite>节点
+<rewrite> 
+      <rules> 
+        <rule name="WWW Redirect" stopProcessing="true"> 
+          <match url=".*" /> 
+          <conditions> 
+            <add input="{HTTP_HOST}" pattern="^gdflhb.com$" /> 
+          </conditions> 
+          <action type="Redirect" url="http://www.gdflhb.com/{R:0}" redirectType="Permanent" /> 
+        </rule> 
+      </rules> 
+    </rewrite> 
+6》网站后台高级参数配置域名地址
+7》有二级域名的解析取消掉如：fch.shendu88.com
+
+
+一、手机：
+
+1.看表哪个字段有没有用到，需新建查询数据表查看
+select * from dbo.tbProduct
+select count(id) from tbHelp where OtherPages=''
+Alter table tbProduct Alter column BrandKeyName text not null
+
+2.C:\Windows\System32\drivers\etc 的hosts这个文件需配置本地域名
+
+3.后台菜单管理
+
+手机管理 
+/SdAdmin/Skins/Blue/Img/sdw_icon8.gif
+ #
+
+手机图片压缩
+MobileBatchImg.aspx
+
+手机网站设置
+MobileConfig.aspx
+
+
+二、pc端
+
+
+3、删除所有的表
+use 数据库名(是要删除表的所在的那个数据库的名称)
+GO
+declare @sql varchar(8000)
+while (select count(*) from sysobjects where type='U')>0
+begin
+SELECT @sql='drop table ' + name
+FROM sysobjects
+WHERE (type = 'U')
+ORDER BY 'drop table ' + name
+exec(@sql)
+end
+
+4、删除所有的视图
+use 数据库名(是要删除表的所在的那个数据库的名称)
+GO
+declare   @sql   varchar(8000)
+set   @sql=''
+select   @sql=@sql+ ', '+name   from   sysobjects
+where   type= 'V '   and   name   not   in( 'syssegments ',   'sysconstraints ')
+set   @sql= 'drop   view   '+stuff(@sql,   1,   1,   ' ')
+exec(@sql)
+
+5、 查询数据：
+1> DataTable dt = DbSession.Default.From<VW_Ad>().Select(VW_Ad._.ID, VW_Ad._.KeyName).Where(VW_Ad._.Enable == true).OrderBy(VW_Ad._.OrderID.Asc).ToDataTable(10);
+2>DataTable dt =DbSession.Default.FromSql("select top 20 Title,PageURL,InputTime,id from VW_News order by newid()").ToDataTable();
+ protected static string getenColumEn(string SID)
+        {
+            string rtnVal = string.Empty;
+            DataTable dt = Cattle.Data.DbSession.Default.FromSql("select ShortDesc from VW_HelpColumn where sid='" + SID+ "'").ToDataTable();
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                rtnVal = dt.Rows[0]["ShortDesc"].ToString();
+            }
+            return rtnVal;
+        }
+
+6、修改表字段类型
+Alter table tbProduct Alter column PhotoName text NOT NULL
+
+7、鼠标移进移出样式
+class="<%#Container.ItemIndex==0?"cur":"" %>"
+.zx_top a.cur , .zx_top a:hover{background:#0065ce;}
+<script type="text/javascript">
+
+    $('.ntzx .zx_top a').mouseover(function () {
+        $(this).addClass("cur").siblings().removeClass("cur");
+        $(".ntzx .alCont").eq($('.ntzx .zx_top a').index(this)).show().siblings(".alCont").hide();
+    });
+</script>
+
+8、收藏 javascript:addBookmark()
+
+9、网站地图 /Sitemap.html
+
+10、关于我们 /helps/aboutus.html
+
+11、联系我们 /Helps/ContactUs.html
+
+12、logo <%=NSW.OConfig.GlobalConfig.Logo %>
+
+13、热线 <%=NSW.OConfig.GlobalConfig.FindPinServiceTel %>
+
+14、热门关键词 <em id="commonHeaderkeywords"></em>
+
+15、查询关键词 
+<input class="soText" value="请输入关键词" onblur="if(this.value==''){this.value='请输入关键词'}"
+                    onfocus="if(this.value=='请输入关键词'){this.value=''}" type="text" id="seachkeywords" />
+                <input class="soBtn curp" type="button" value="" onclick="xuanze()" />
+
+16、立即咨询
+ <a href="http://wpa.qq.com/msgrd?v=3&site=<%= NSW.OConfig.GlobalConfig.SiteName %>&menu=yes&uin=<%= NSW.OConfig.GlobalConfig.ServiceQQ1 %>" target="_blank">立即咨询</a>
+
+17、首页图片地址加下划线 _src,遇到有多个切换不需加下划线，友情连接必须连接到 /FriendLink/Apply.aspx
+
+18、重写回顶部
+ <div id="roll" style="display: none;">
+    <div title="回到顶部" id="roll_top">
+    </div>
+</div>
+rollup.min.js：
+jQuery(document).ready(function ($) {
+    $('#roll_top').click(function () { $('html,body').animate({ scrollTop: '0px' }, 800); });
+    $('#ct').click(function () { $('html,body').animate({ scrollTop: $('.ct').offset().top }, 800); });
+    $(window).scroll(function (event) {
+        if ($.browser.ie6) {
+            $('#roll').css('top', $(this).scrollTop() + $(this).height() - 170);
+        }
+        if ($(this).scrollTop() > 260) {
+            $('#roll').fadeIn();
+        } else {
+            $('#roll').fadeOut();
+        }
+    });
+});
+/Skins/Default/Common.css:
+#roll_top, #fall, #ct{position: relative;cursor: pointer;height: 72px;width: 26px;}
+#roll_top{background: url(/Skins/Default/Img/top.gif) no-repeat;}
+#fall{background: url(/Skins/Default/Img/top.gif) no-repeat 0 -80px;}
+#ct{background: url(/Skins/Default/Img/top.gif) no-repeat 0 -40px;}
+#roll{	display: block;	width: 15px;margin-right: -515px;position: fixed;right: 50%;top: 50%;_margin-right: -525px;	_position: absolute;_margin-top: 300px;	_top: expression(eval(document.documentElement.scrollTop));}
+
+19、关于我们或联系我们--宽屏显示js
+$(function () {
+        if (SID.indexOf("0001,0003")>-1) {
+            $(".left").remove();
+            $(".age_li_about h1").remove();
+            $(".age_li_about .info_con_tit").remove();
+            $(".right").css("float", "none");
+            $(".right").css("width", "100%");
+            $(".right_main").css("width", "100%");
+            $(".right_main").css("border", "0");
+            $(".agent_con").css({ "width": "980px", "margin": "0" });
+
+        }
+    });
+
+20.在线客服更改
+客服居浏览器上边的高度调整
+动态页面：/UserControls/IM/kefu.ascx  
+静态页面：/App_Code/Tools/kefu.cs 
+更改_topOffset的值
+
+21.设置资讯中心默认分类
+/UserControls/News/Columns.ascx 
+更改reSid的默认sid值
+
+22.skype链接代码(英文站会遇到)
+skype:skype号码?chat
+<a href="skype:nicole.tang8?chat">Anna</a>
+
+23.邮箱链接代码
+<a href="mailto:kingbolen07@hotmail.com">aa</a>
+
+24.反右键
+在/Skins/Default/Common.css 文件里面添加
+body{
+   -moz-user-select: none; /*火狐*/
+   -webkit-user-select: none;  /*webkit浏览器*/
+   -ms-user-select: none;   /*IE10*/
+   -khtml-user-select: none; /*早期浏览器*/
+   user-select: none;
+}
+在/JS/index.js和/js/ajax.js文件里面添加以下代码
+
+document.oncontextmenu = new Function("event.returnValue=false;");
+document.onselectstart = new Function("event.returnValue=false;");
+
+25.特效网站：
+1.大话主席:
+
+http://www.superslide2.com/
+
+2.图片切换特效_素材中国17素材网
+
+http://www.17sucai.com/category/1
+
+26.判断语句
+if (SID.IndexOf("0001,0005,0019") > -1)
+                      {%>
+                      <div style="margin-top:15px; margin-bottom:30px;"><img src="/Skins/Default/Img/shry.png" /></div>
+                    <%}
+                      else if (SID.IndexOf("0001,0005,0018") > -1)
+                      { %>
+                      <div style="margin-top:15px; margin-bottom:30px;"><img src="/Skins/Default/Img/shhj.png" /></div>
+                    <%}
+                      else if (SID.IndexOf("0001,0005,0028") > -1)
+                      { %>
+                      <div style="margin-top:15px; margin-bottom:30px;"><img src="/Skins/Default/Img/hqtd.png" /></div>
+                    <%}
+                      else if (SID.IndexOf("0001,0005,0023") > -1)
+                      { %>
+                      <div style="margin-top:15px; margin-bottom:30px;"><img src="/Skins/Default/Img/shfc.png" /></div>
+                    <%}
+                      else if (SID.IndexOf("0001,0005,0026") > -1)
+                      { %>
+                      <div style="margin-top:15px; margin-bottom:30px;"><img src="/Skins/Default/Img/hydw.png" /></div>
+                    <%}
+                      else if (SID.IndexOf("0001,0029,0027") > -1)
+                      { %>
+                      <div style="margin-top:15px; margin-bottom:30px;"><img src="/Skins/Default/Img/jmjz.png" /></div>
+                    <%} %>
+
+
+27.绑定广告图片
+<%=NSW.BLL.Site.GetAdCodeByKeyName("index_js")%>
+
+28.a标签记得加title属性，img标签记得加title属性
+
+29.按回车键搜索
+ 1>设置按钮的id=“btnsearch”
+$('#seachkeywords').keyup(function () {
+        var evt = arguments[0] || window.event;
+        if (evt.keyCode == 13) {
+            $("#btnsearch").click();
+        }
+    });
+
+2>
+<script type="text/javascript">
+    document.onkeydown = keyDown;
+    function keyDown(e) {
+        enterHandler(e);
+    }
+    function enterHandler(event) {
+        var keynum;
+        if (window.event) // IE  
+        {
+            keynum = window.event.keyCode
+        }
+        else if (event.which) // Netscape/Firefox/Opera  
+        {
+            keynum = event.which
+        }
+        if (keynum == 13) {
+            xuanze();
+            if (window.event) {
+                window.event.returnValue = false;
+            }
+            else {
+                event.preventDefault();  //for firefox  
+            }
+        }
+    }
+</script>
+
+28.talk99
+<a href="#" target="_blank" onclick="doyoo.util.openPhone('g=3774682');return false;" looyu_bound="1">
+                    <img src="Skins/Default/Img/Index/zsMore.png" alt="微商代理货源"></a>
+
+
+29.绑定广告图片：<img src="<%=NSW.Web.Excel.GetAdCodeByKeyName("about")%>">，<%=NSW.BLL.Site.GetAdCodeByKeyName("index_js")%>
+
+30.用大话主席的插件（左右滚动，上下滚动文字统一一个）：尚品的项目
+
+31.网站不能用浮动框架，对百度收录不好。
+
+32.本地修改数据库字段类型，提示不能修改，需要在工具-选项-Designers下的"阻止保存要求...."钩去掉
+
+33.做手机时导入详细内容的字段必须为text，不然，2000的数据库不支持
+
+34.首页广告不兼容用大话主席js
+ <script src="/JS/jquery.SuperSlide.2.1.1.js" type="text/javascript"></script>
+    jQuery("#flashs").slide({ mainCell: ".bd div", titCell: ".hd span", effect: "fold", autoPlay: true, delayTime: 200 });
+
+35. CSS控制文字只显示一行，超出部分显示省略号
+overflow: hidden;white-space: nowrap;text-overflow: ellipsis;
+
+36.设置发送邮件的相关文件是网站跟目录的Private的所有文件及注意点（普泰克项目）
+
+37.后台权限管理，栏目ID号要和前台页面设置对应（松博宇项目）
+
+38.后台多图上传不成功原因是UploadFiles缺少Source文件夹
+  
+39.绑定视频代码
+ <%=NSW.BLL.Site.GetVideoCodeByKeyName("index_video")%>
+
+
+ 40.有微信分享代码
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"slide":{"type":"slide","bdImg":"0","bdPos":"left","bdTop":"100"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+
+
+41.编辑器更改字体颜色：
+找到/ueditor1_3_5-utf8-net/ueditor.all.min.js 和 /ueditor1_3_5-utf8-net/ueditor.all.js/ 
+---->搜索COLORS，然后替换某个二进制颜色，暂时还没找到可以添加的，只能更改
+
+42.自定义页面
+
+修改字段语句：
+Alter table tbBugReport Alter column BugReportShortDesc text NOT NULL
+Alter table tbBugReport Alter column BugReportDillRemark text NOT NULL
+
+43.描述字段更改类型
+
+Alter table tbProduct Alter column ShortDesc text NOT NULL
+Alter table tbHelp Alter column ShortDesc text NOT NULL
+Alter table tbNews Alter column ShortDesc text NOT NULL
+Alter table tbOrder Alter column UserRemark text NOT NULL
+Alter table tbOrderDetail Alter column ProductName varchar(200) NOT NULL
+
+CREATE PROC [dbo].[PageView]
+@tbname     sysname,           		--要分页显示的表名
+@FieldKey   nvarchar(1000),  		--用于定位记录的主键(惟一键)字段,可以是逗号分隔的多个字段
+@SelectFields nvarchar(1000)='',  	--以逗号分隔的要显示的字段列表,如果不指定,则显示所有字段
+@SQLWhere    nvarchar(1000)='', 	--查询条件
+@FieldOrder nvarchar(1000)='',  	--以逗号分隔的排序字段列表,可以指定在字段后面指定DESC/ASC,用于指定排序顺序
+@PageSize   int=10,				  	--每页的大小(记录数)                                          
+@PageCurrentIndex int=1,           	--要显示的页码
+@ReturnTotalRecord bit = 0,			--是否返回总记录数
+@PageCount int OUTPUT       		--总记录数
+AS
+DECLARE @sql nvarchar(4000)
+SET NOCOUNT ON
+--检查对象是否有效
+IF OBJECT_ID(@tbname) IS NULL
+	BEGIN
+		RAISERROR(N'对象"%s"不存在',1,16,@tbname)
+		RETURN
+	END
+IF OBJECTPROPERTY(OBJECT_ID(@tbname),N'IsTable')=0
+AND OBJECTPROPERTY(OBJECT_ID(@tbname),N'IsView')=0
+AND OBJECTPROPERTY(OBJECT_ID(@tbname),N'IsTableFunction')=0
+BEGIN
+RAISERROR(N'"%s"不是表、视图或者表值函数',1,16,@tbname)
+RETURN
+END
+--分页字段检查
+IF ISNULL(@FieldKey,N'')=''
+BEGIN
+RAISERROR(N'分页处理需要主键（或者惟一键）',1,16)
+RETURN
+END
+set @FieldKey = RTRIM(LTRIM(@FieldKey))
+IF @FieldKey=N''	SET @FieldKey='id'
+--其他参数检查及规范
+IF ISNULL(@PageCurrentIndex,0)<1    SET @PageCurrentIndex=1
+IF ISNULL(@PageSize,0)<1       SET @PageSize=10
+
+IF ISNULL(@SelectFields,N'')=N''  SET @SelectFields=N'*'
+
+SET @FieldOrder=RTRIM(LTRIM(REPLACE(@FieldOrder,'ORDER BY','')))
+IF ISNULL(@FieldOrder,N'')=N'' SET @FieldOrder=N''
+ELSE
+SET @FieldOrder=N'ORDER BY '+@FieldOrder
+
+SET @SQLWhere=RTRIM(LTRIM(REPLACE(@SQLWhere,'WHERE','')))
+IF ISNULL(@SQLWhere,N'')=N''
+SET @SQLWhere=N''
+ELSE
+SET @SQLWhere=N' WHERE '+@SQLWhere
+
+--总记录数
+IF @ReturnTotalRecord = 1
+BEGIN
+SET @sql=N'SELECT @PageCount=COUNT(*)'
++N' FROM '+@tbname
++N' '+@SQLWhere
+EXEC sp_executesql @sql,N'@PageCount int OUTPUT',@PageCount OUTPUT
+END
+
+--计算分页显示的TOPN值
+DECLARE @TopN varchar(20),@TopN1 varchar(20)
+SELECT @TopN=@PageSize,
+
+@TopN1=@PageCurrentIndex*@PageSize
+
+--第一页直接显示
+IF @PageCurrentIndex=1
+	EXEC(N'SELECT TOP '+@TopN
+	+N' '+@SelectFields
+	+N' FROM '+@tbname
+	+N' '+@SQLWhere
+	+N' '+@FieldOrder)
+ELSE
+BEGIN
+
+		declare @top2 int
+		select @top2=CAST(@PageCurrentIndex as int)*CAST(@PageSize as int)-CAST(@PageSize as int)
+		
+		
+
+		set @sql='select top '+cast(@top2 as varchar)+' '+@FieldKey
+		+' from '+@tbname+' '+@SQLWhere+' '+@FieldOrder
+		
+
+		SET @SQLWhere=RTRIM(LTRIM(REPLACE(@SQLWhere,'WHERE','')))
+		IF ISNULL(@SQLWhere,N'')=N''
+		SET @SQLWhere=N''
+		ELSE
+		SET @SQLWhere=N' and '+@SQLWhere
+	
+		EXEC(N'SELECT TOP '+@TopN
+		+N' '+@SelectFields
+		+N' FROM '+@tbname
+		+' where '+@FieldKey
+		+N' not IN('+@sql
+		+N') '+@SQLWhere +' '+@FieldOrder)
+END
+
+
+
+GO
+
+
+44.数据库修改邮箱
+
+update tbAdmin set UserEmail='992633706@qq.com'
+
+45.存储过程换了
+
+46.没字段，用美元符号分割的时候
+
+后台
+OBJ.TitleKeyword = txtPhotoName.SelectedValue + "$" + DropDownList1.SelectedValue;
+
+ if (OBJ.TitleKeyword.IndexOf("$") > -1)
+            {
+                txtPhotoName.SelectedValue = OBJ.TitleKeyword.Split('$')[0].ToString();
+                DropDownList1.SelectedValue = OBJ.TitleKeyword.Split('$')[1].ToString();
+            }
+            else
+            {
+                txtPhotoName.SelectedValue = OBJ.TitleKeyword;
+                DropDownList1.SelectedValue = "1";
+            }
+
+前台
+  if (row[VW_HelpColumn._.TitleKeyword.Name].ToString().Length != 0)
+            {
+                if (row[VW_HelpColumn._.TitleKeyword.Name].ToString().IndexOf("$") > -1)
+                {
+                    ShowSummary = Convert.ToInt32(row[VW_HelpColumn._.TitleKeyword.Name].ToString().Split('$')[0].ToString());
+                }
+                else
+                {
+                    ShowSummary = Convert.ToInt32(row[VW_HelpColumn._.TitleKeyword.Name]);
+                }
+
+            }
+
+	详细页标题关键词调整
+
+			 if (!string.IsNullOrEmpty(model.PageTitle))
+            {
+                dic.Add("PageTitle", model.PageTitle + "|" + OConfig.GlobalConfig.TitlePostfix);
+                mobiledic.Add("PageTitle", model.PageTitle + "|" + OConfig.GlobalConfig.TitlePostfix);
+            }
+            else
+            {
+                string Title = model.Title + "|" + column.Title + "|" + OConfig.GlobalConfig.TitlePostfix;
+                dic.Add("PageTitle", Title);
+                mobiledic.Add("PageTitle", Title);
+            }
+
+47:
+新闻详细页内容站内互链关键词，有图片冲突情况，鼠标移到图片上出现标签的现象解决办法
+
+  $("#newcont img").each(function () {
+        var vtitle = $(this).attr("title");
+        if (vtitle!=null && vtitle.indexOf('点击查看关于') > -1) {
+            vtitle = vtitle.substring(vtitle.indexOf("='_blank'>") + 10).replace("</a>", "");
+            $(this).attr("title", vtitle).attr("alt", vtitle);
+        }
+    });
+
+48:上传大视频方法：
+
+ <security>
+      <requestFiltering >
+        <requestLimits maxAllowedContentLength="2147483647" ></requestLimits>
+      </requestFiltering>
+   </security>
